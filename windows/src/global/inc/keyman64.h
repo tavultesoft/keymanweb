@@ -76,6 +76,7 @@
 #include <assert.h>
 #include <msctf.h>
 #include "compiler.h"
+#include <keyman/keyboardprocessor.h>
 
 #ifdef _WIN64
 #define LIBRARY_NAME "KEYMAN64"
@@ -241,7 +242,7 @@ typedef struct tagINTKEYBOARDINFO
   LPINTKEYBOARDOPTIONS KeyboardOptions;
   int nProfiles;
   LPINTKEYBOARDPROFILE Profiles;
-  km_kbp_keyboard coreKeyboard;
+  km_kbp_keyboard* coreKeyboard;
   km_kbp_option_item* coreKeyboadOptions;
 } INTKEYBOARDINFO, *LPINTKEYBOARDINFO;
 
@@ -256,11 +257,17 @@ typedef struct tagKMSTATE
 {
   BOOL NoMatches;
   MSG msg;
+  // TODO: 5011 will remove these once windows core is deprecated
+  BOOL StopOutput;
+	int LoopTimes;
+  // TOD): 5011
   WORD vkey;          // I934
   WCHAR charCode;     // I4582
   BOOL windowunicode; // I4287
-  km_kbp_keyboard* lpkb;//km_kbp_keyboard
+  LPKEYBOARD lpkb;
+  km_kbp_keyboard* lpCoreKb;//km_kbp_keyboard
   km_kbp_state*    lpActiveKBState;
+  LPGROUP startgroup; // TODO: 5011 will remove these once windows core is deprecated
 } KMSTATE;
 // I3616
 enum ProcessStringReturn
