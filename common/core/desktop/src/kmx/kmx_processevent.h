@@ -71,7 +71,7 @@ private:
 
   /* Caps Lock and modifier management */
 
-  void ResetCapsLock(void);
+  void ResetCapsLock(KMX_DWORD &modifiers);
   void KeyCapsLockPress(KMX_BOOL FIsUp);
   void KeyShiftPress(KMX_BOOL FIsUp);
 
@@ -82,7 +82,7 @@ public:
   ~KMX_ProcessEvent();
 
   KMX_BOOL Load(km_kbp_path_name keyboardName);
-  KMX_BOOL ProcessEvent(km_kbp_state *state, KMX_UINT vkey, KMX_DWORD modifiers);  // returns FALSE on error or key not matched
+  KMX_BOOL ProcessEvent(km_kbp_state *state, KMX_UINT vkey, KMX_DWORD modifiers, KMX_BOOL isKeyDown);  // returns FALSE on error or key not matched
 
   KMX_Actions *GetActions();
   KMX_Context *GetContext();

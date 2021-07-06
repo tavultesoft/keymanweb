@@ -40,6 +40,7 @@
 #define KEYMAN_LALT 56
 #define KEYMAN_RCTRL 97
 #define KEYMAN_RALT 100
+#define KEYMAN_CAPS 0x3a
 
 typedef struct _IBusKeymanEngine IBusKeymanEngine;
 typedef struct _IBusKeymanEngineClass IBusKeymanEngineClass;
@@ -595,25 +596,30 @@ ibus_keyman_engine_process_key_event (IBusEngine     *engine,
 
     g_message("DAR: ibus_keyman_engine_process_key_event - keyval=%02i, keycode=%02i, state=%02x", keyval, keycode, state);
 
+    gboolean isKeyDown = TRUE;
+
     if (state & IBUS_RELEASE_MASK)
     {
-        switch(keycode) {
-            case KEYMAN_LCTRL:
-                keyman->lctrl_pressed = FALSE;
-                break;
-            case KEYMAN_RCTRL:
-                keyman->rctrl_pressed = FALSE;
-                break;
-            case KEYMAN_LALT:
-                keyman->lalt_pressed = FALSE;
-                break;
-            case KEYMAN_RALT:
-                keyman->ralt_pressed = FALSE;
-                break;
-            default:
-                break;
+        switch (keycode)
+        {
+        case KEYMAN_LCTRL:
+            keyman->lctrl_pressed = FALSE;
+            return FALSE;
+        case KEYMAN_RCTRL:
+            keyman->rctrl_pressed = FALSE;
+            return FALSE;
+        case KEYMAN_LALT:
+            keyman->lalt_pressed = FALSE;
+            return FALSE;
+        case KEYMAN_RALT:
+            keyman->ralt_pressed = FALSE;
+            return FALSE;
+        case KEYMAN_CAPS:
+            isKeyDown = FALSE;
+            break;
+        default:
+            return FALSE;
         }
-        return FALSE;
     }
 
     if (keycode < 0 || keycode > 255)
@@ -685,8 +691,8 @@ ibus_keyman_engine_process_key_event (IBusEngine     *engine,
     km_kbp_context *context = km_kbp_state_context(keyman->state);
     g_free(get_current_context_text(context));
     g_message("DAR: ibus_keyman_engine_process_key_event - km_mod_state=%x", km_mod_state);
-    km_kbp_status event_status = km_kbp_process_event(keyman->state,
-                                   keycode_to_vk[keycode], km_mod_state);
+    km_kbp_status event_status =
+        km_kbp_process_event(keyman->state, keycode_to_vk[keycode], km_mod_state, isKeyDown);
     context = km_kbp_state_context(keyman->state);
     g_message("after process key event");
     g_free(get_current_context_text(context));

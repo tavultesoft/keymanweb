@@ -3,11 +3,21 @@
   Authors:          mcdurdin
 */
 #include <kmx/kmx_processevent.h>
+#include <keyman/keyboardprocessor_consts.h>
 
 using namespace km::kbp;
 using namespace kmx;
 
-void KMX_ProcessEvent::ResetCapsLock(void)
+/*
+* PRIVATE void ResetCapsLock(KMX_DWORD &modifiers);
+*
+* Parameters: modifiers    The modifier keys
+*
+*   Called by:  ProcessEvent
+*
+* Turn off caps lock if it is on and CapsAlwaysOff is set
+*/
+void KMX_ProcessEvent::ResetCapsLock(KMX_DWORD &modifiers)
 {
   DebugLog("ResetCapsLock: enter");
 
@@ -17,42 +27,59 @@ void KMX_ProcessEvent::ResetCapsLock(void)
     if (m_environment.capsLock())
     {
       DebugLog("ResetCapsLock: caps lock is on, switching off caps lock");
-      m_actions.QueueAction(QIT_CAPSLOCK, 0);
+      m_actions.QueueAction(QIT_CAPSLOCK, false);
+      m_environment.Set(KM_KBP_KMX_ENV_CAPSLOCK, u"0");
+      modifiers &= ~CAPITALFLAG;
     }
   }
   DebugLog("ResetCapsLock: exit");
 }
 
-
-void KMX_ProcessEvent::KeyCapsLockPress(KMX_BOOL FIsUp)
-{
+/*
+ * PRIVATE void KeyCapsLockPress(KMX_BOOL isKeyDown);
+ *
+ * Parameters: isKeyDown    TRUE if this is called on KeyDown event, FALSE if
+ *                          called on KeyUp event
+ *
+ *   Called by:  ProcessEvent
+ *
+ * Deal with CapsLock store options on CapsLock key press
+ */
+void KMX_ProcessEvent::KeyCapsLockPress(KMX_BOOL isKeyDown) {
   if (m_keyboard.Keyboard->dwFlags & KF_CAPSONONLY)
   {
-    if(FIsUp && !m_environment.capsLock())
-    {
-      m_actions.QueueAction(QIT_CAPSLOCK, 1);
+    if (!isKeyDown && !m_environment.capsLock()) {
+      m_actions.QueueAction(QIT_CAPSLOCK, true);
+      m_environment.Set(KM_KBP_KMX_ENV_CAPSLOCK, u"1");
     }
   }
   else if (m_keyboard.Keyboard->dwFlags & KF_CAPSALWAYSOFF)
   {
-    if(!FIsUp && m_environment.capsLock())
-    {
-      m_actions.QueueAction(QIT_CAPSLOCK, 0);
+    if (isKeyDown && m_environment.capsLock()) {
+      m_actions.QueueAction(QIT_CAPSLOCK, false);
+      m_environment.Set(KM_KBP_KMX_ENV_CAPSLOCK, u"0");
     }
   }
 }
 
-
-void KMX_ProcessEvent::KeyShiftPress(KMX_BOOL FIsUp)
-{
-  if(!m_environment.capsLock()) return;
+/*
+ * PRIVATE void KeyShiftPress(KMX_BOOL isKeyDown);
+ *
+ * Parameters: isKeyDown    TRUE if this is called on KeyDown event, FALSE if called
+ *                          on KeyUp event
+ *
+ *   Called by:  ProcessEvent
+ *
+ * Deal with CapsLock store options on Shift key press
+ */
+void KMX_ProcessEvent::KeyShiftPress(KMX_BOOL isKeyDown) {
+  if (!m_environment.capsLock())
+    return;
 
   if (m_keyboard.Keyboard->dwFlags & KF_SHIFTFREESCAPS)
   {
-    if(!FIsUp)
-    {
-      m_actions.QueueAction(QIT_CAPSLOCK, 0);
+    if (isKeyDown) {
+      m_actions.QueueAction(QIT_CAPSLOCK, false);
     }
   }
 }
-

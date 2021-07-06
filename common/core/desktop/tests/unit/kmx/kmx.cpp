@@ -18,6 +18,7 @@
 #include <type_traits>
 
 #include <kmx/kmx_processevent.h>
+#include <kmx/kmx_xstring.h>
 
 #include "path.hpp"
 #include "state.hpp"
@@ -34,6 +35,7 @@
 namespace
 {
 bool g_beep_found = false;
+bool g_caps_lock_on = false;
 
 struct key_event {
   km_kbp_virtual_key vk;
@@ -232,13 +234,63 @@ void apply_action(km_kbp_state const *, km_kbp_action_item const & act, std::u16
   case KM_KBP_IT_EMIT_KEYSTROKE:
     std::cout << "action: emit keystroke" << std::endl;
     break;
+  case KM_KBP_IT_CAPSLOCK:
+    std::cout << "action: capsLock " << act.option->value << std::endl;
+    g_caps_lock_on = km::kbp::kmx::u16cmp(act.option->value, u"1") == 0;
+    break;
   default:
     assert(false); // NOT SUPPORTED
     break;
   }
 }
 
-int run_test(const km::kbp::path & source, const km::kbp::path & compiled) {
+int caps_lock_state() {
+  return g_caps_lock_on ? KM_KBP_MODIFIER_CAPS : 0;
+}
+
+km_kbp_option_item *get_keyboard_options(kmx_options options) {
+  km_kbp_option_item *keyboard_opts = new km_kbp_option_item[options.size() + 1];
+
+  int i = 0;
+  for (auto it = options.begin(); it != options.end(); it++) {
+    if (it->type != KOT_INPUT) continue;
+
+    std::cout << "input option-key: " << it->key << std::endl;
+
+    std::u16string key = it->key;
+    if (key.compare(u"&capsLock") == 0) {
+      g_caps_lock_on = it->value.compare(u"1") == 0;
+      continue;
+    }
+    else if (key[0] == u'&') {
+      // environment value (aka system store)
+      key.erase(0, 1);
+      keyboard_opts[i].scope = KM_KBP_OPT_ENVIRONMENT;
+    }
+    else {
+      keyboard_opts[i].scope = KM_KBP_OPT_KEYBOARD;
+    }
+
+    km_kbp_cp *cp = new km_kbp_cp[key.length() + 1];
+    key.copy(cp, key.length());
+    cp[key.length()] = 0;
+
+    keyboard_opts[i].key = cp;
+
+    cp = new km_kbp_cp[it->value.length() + 1];
+    it->value.copy(cp, it->value.length());
+    cp[it->value.length()] = 0;
+
+    keyboard_opts[i].value = cp;
+
+    i++;
+  }
+
+  keyboard_opts[i] = KM_KBP_OPTIONS_END;
+  return keyboard_opts;
+}
+
+int run_test(const km::kbp::path &source, const km::kbp::path &compiled) {
   std::string keys = "";
   std::u16string expected = u"", context = u"";
   kmx_options options;
@@ -256,46 +308,11 @@ int run_test(const km::kbp::path & source, const km::kbp::path & compiled) {
   try_status(km_kbp_keyboard_load(compiled.c_str(), &test_kb));
 
   // Setup state, environment
-
   try_status(km_kbp_state_create(test_kb, test_env_opts, &test_state));
 
   // Setup keyboard options
-
   if (options.size() > 0) {
-    km_kbp_option_item *keyboard_opts = new km_kbp_option_item[options.size() + 1];
-
-    int i = 0;
-    for (auto it = options.begin(); it != options.end(); it++) {
-      if (it->type != KOT_INPUT) continue;
-
-      std::cout << "input option-key: " << it->key << std::endl;
-
-      std::u16string key = it->key;
-      if (key[0] == u'&') {
-        // environment value (aka system store)
-        key.erase(0, 1);
-        keyboard_opts[i].scope = KM_KBP_OPT_ENVIRONMENT;
-      }
-      else {
-        keyboard_opts[i].scope = KM_KBP_OPT_KEYBOARD;
-      }
-
-      km_kbp_cp *cp = new km_kbp_cp[key.length() + 1];
-      key.copy(cp, key.length());
-      cp[key.length()] = 0;
-
-      keyboard_opts[i].key = cp;
-
-      cp = new km_kbp_cp[it->value.length() + 1];
-      it->value.copy(cp, it->value.length());
-      cp[it->value.length()] = 0;
-
-      keyboard_opts[i].value = cp;
-
-      i++;
-    }
-
-    keyboard_opts[i] = KM_KBP_OPTIONS_END;
+    km_kbp_option_item *keyboard_opts = get_keyboard_options(options);
 
     try_status(km_kbp_state_options_update(test_state, keyboard_opts));
 
@@ -313,7 +330,7 @@ int run_test(const km::kbp::path & source, const km::kbp::path & compiled) {
 
   // Run through key events, applying output for each event
   for (auto p = next_key(keys); p.vk != 0; p = next_key(keys)) {
-    try_status(km_kbp_process_event(test_state, p.vk, p.modifier_state));
+    try_status(km_kbp_process_event(test_state, p.vk, p.modifier_state | caps_lock_state(), 1));
 
     for (auto act = km_kbp_state_action_items(test_state, nullptr); act->type != KM_KBP_IT_END; act++) {
       apply_action(test_state, *act, text_store, options);

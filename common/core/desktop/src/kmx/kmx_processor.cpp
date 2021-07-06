@@ -2,6 +2,10 @@
 #include "state.hpp"
 #include "kmx/kmx_processor.hpp"
 
+
+using namespace km::kbp;
+using namespace kmx;
+
 namespace km {
   namespace kbp
   {
@@ -33,7 +37,6 @@ namespace km {
       _attributes = keyboard_attributes(static_cast<std::u16string>(p.stem()),
                       std::u16string(vs.begin(), vs.end()), p.parent(), defaults);
     }
-
 
     char16_t const * kmx_processor::lookup_option(km_kbp_option_scope scope, std::u16string const & key) const
     {
@@ -71,7 +74,10 @@ namespace km {
       return option(scope, key, value);
     }
 
-    km_kbp_status kmx_processor::process_event(km_kbp_state *state, km_kbp_virtual_key vk, uint16_t modifier_state) {
+    km_kbp_status kmx_processor::process_event(km_kbp_state *state,
+                                               km_kbp_virtual_key vk,
+                                               uint16_t modifier_state,
+                                               uint8_t is_key_down) {
       // Construct a context buffer from the items
 
       std::u16string ctxt;
@@ -100,7 +106,7 @@ namespace km {
       _kmx.GetActions()->ResetQueue();
       state->actions().clear();
 
-      if (!_kmx.ProcessEvent(state, vk, modifier_state)) {
+      if (!_kmx.ProcessEvent(state, vk, modifier_state, is_key_down)) {
         // We need to output the default keystroke
         state->actions().push_emit_keystroke();
       }
@@ -109,9 +115,7 @@ namespace km {
         auto a = _kmx.GetActions()->Get(i);
         switch (a.ItemType) {
         case QIT_CAPSLOCK:
-          //TODO: add Caps Event
-          //dwData = 0 == off; 1 == on
-          //state->actions.emplace_back(km_kbp_action_item{ KM_KBP_IT_CAPSLOCK, {0,}, {0} });
+          state->actions().push_capslock(a.dwData);
           break;
         case QIT_VKEYDOWN:
         case QIT_VKEYUP:
