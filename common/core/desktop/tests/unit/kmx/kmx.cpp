@@ -258,11 +258,7 @@ km_kbp_option_item *get_keyboard_options(kmx_options options) {
     std::cout << "input option-key: " << it->key << std::endl;
 
     std::u16string key = it->key;
-    if (key.compare(u"&capsLock") == 0) {
-      g_caps_lock_on = it->value.compare(u"1") == 0;
-      continue;
-    }
-    else if (key[0] == u'&') {
+    if (key[0] == u'&') {
       // environment value (aka system store)
       key.erase(0, 1);
       keyboard_opts[i].scope = KM_KBP_OPT_ENVIRONMENT;
@@ -462,7 +458,8 @@ int load_source(const km::kbp::path & path, std::string & keys, std::u16string &
     s_context = "c context: ",
     s_option = "c option: ",
     s_option_expected = "c expected option: ",
-    s_option_saved = "c saved option: ";
+    s_option_saved = "c saved option: ",
+    s_capsLock = "c capsLock: ";
 
   // Parse out the header statements in file.kmn that tell us (a) environment, (b) key sequence, (c) start context, (d) expected result
   std::ifstream kmn(path.native());
@@ -498,6 +495,9 @@ int load_source(const km::kbp::path & path, std::string & keys, std::u16string &
     }
     else if (is_token(s_option_saved, line)) {
       if (!parse_option_string(line, options, KOT_SAVED)) return __LINE__;
+    }
+    else if (is_token(s_capsLock, line)) {
+      g_caps_lock_on = parse_source_string(line).compare(u"1") == 0;
     }
   }
 
