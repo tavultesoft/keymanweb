@@ -243,7 +243,7 @@ typedef struct tagINTKEYBOARDINFO
   int nProfiles;
   LPINTKEYBOARDPROFILE Profiles;
   km_kbp_keyboard* coreKeyboard;
-  km_kbp_option_item* coreKeyboadOptions;
+  km_kbp_option_item* coreKeyboardOptions;
 } INTKEYBOARDINFO, *LPINTKEYBOARDINFO;
 
 typedef struct tagINI
