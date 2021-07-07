@@ -71,9 +71,11 @@ private:
 
   /* Caps Lock and modifier management */
 
+  KMX_BOOL IsCapsLockOn(KMX_DWORD modifiers);
+  void SetCapsLock(KMX_DWORD &modifiers, KMX_BOOL capsLockOn);
   void ResetCapsLock(KMX_DWORD &modifiers);
-  void KeyCapsLockPress(KMX_BOOL FIsUp);
-  void KeyShiftPress(KMX_BOOL FIsUp);
+  void KeyCapsLockPress(KMX_DWORD &modifiers, KMX_BOOL isKeyDown);
+  void KeyShiftPress(KMX_DWORD &modifiers, KMX_BOOL isKeyDown);
 
   KMX_BOOL IsEquivalentShift(KMX_UINT rshift, KMX_UINT kshift);
 

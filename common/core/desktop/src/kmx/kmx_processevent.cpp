@@ -80,8 +80,6 @@ KMX_BOOL KMX_ProcessEvent::ProcessEvent(km_kbp_state *state, KMX_UINT vkey, KMX_
 
   m_kbp_state = state;
 
-  m_environment.Set(KM_KBP_KMX_ENV_CAPSLOCK, (modifiers & CAPITALFLAG) ? u"1" : u"0");
-
   ResetCapsLock(modifiers);
 
   m_state.vkey = vkey;
@@ -99,10 +97,10 @@ KMX_BOOL KMX_ProcessEvent::ProcessEvent(km_kbp_state *state, KMX_UINT vkey, KMX_
   switch (vkey)
   {
     case KM_KBP_VKEY_CAPS:
-      KeyCapsLockPress(isKeyDown);
+      KeyCapsLockPress(modifiers, isKeyDown);
       break;
     case KM_KBP_VKEY_SHIFT:
-      KeyShiftPress(isKeyDown);
+      KeyShiftPress(modifiers, isKeyDown);
       break;
     }
 
