@@ -21,7 +21,10 @@
       "target": "build/arch/debug/tests/unit/kmx/kmx",
       "cwd": "${workspaceRoot}/common/core/desktop/",
       "arguments": "tests/unit/kmx/033\\ -\\ caps\\ always\\ off.km{n,x}",
-      "valuesFormatting": "parseText"
+      "valuesFormatting": "parseText",
+      "env": {
+        "KEYMAN_DEBUG": "1"
+      }
     },
     {
       // kill ibus-engine-keyman, if running
