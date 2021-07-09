@@ -235,8 +235,8 @@ void apply_action(km_kbp_state const *, km_kbp_action_item const & act, std::u16
     std::cout << "action: emit keystroke" << std::endl;
     break;
   case KM_KBP_IT_CAPSLOCK:
-    std::cout << "action: capsLock " << act.option->value << std::endl;
-    g_caps_lock_on = km::kbp::kmx::u16cmp(act.option->value, u"1") == 0;
+    std::cout << "action: capsLock " << act.capsLock << std::endl;
+    g_caps_lock_on = act.capsLock;
     break;
   default:
     assert(false); // NOT SUPPORTED
@@ -246,6 +246,10 @@ void apply_action(km_kbp_state const *, km_kbp_action_item const & act, std::u16
 
 int caps_lock_state() {
   return g_caps_lock_on ? KM_KBP_MODIFIER_CAPS : 0;
+}
+
+void toggle_caps_lock_state() {
+  g_caps_lock_on = !g_caps_lock_on;
 }
 
 km_kbp_option_item *get_keyboard_options(kmx_options options) {
@@ -326,10 +330,14 @@ int run_test(const km::kbp::path &source, const km::kbp::path &compiled) {
 
   // Run through key events, applying output for each event
   for (auto p = next_key(keys); p.vk != 0; p = next_key(keys)) {
-    try_status(km_kbp_process_event(test_state, p.vk, p.modifier_state | caps_lock_state(), 1));
-
-    for (auto act = km_kbp_state_action_items(test_state, nullptr); act->type != KM_KBP_IT_END; act++) {
-      apply_action(test_state, *act, text_store, options);
+    if (p.vk == KM_KBP_VKEY_CAPS) {
+      toggle_caps_lock_state();
+    }
+    for (auto key_down = 1; key_down >= 0; key_down--) {
+      try_status(km_kbp_process_event(test_state, p.vk, p.modifier_state | caps_lock_state(), key_down));
+      for (auto act = km_kbp_state_action_items(test_state, nullptr); act->type != KM_KBP_IT_END; act++) {
+        apply_action(test_state, *act, text_store, options);
+      }
     }
   }
 

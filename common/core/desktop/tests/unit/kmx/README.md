@@ -29,7 +29,7 @@ c option: &platform=linux
   caps-lock on.
 
 ```text
-c option: &capsLock=1
+c capsLock: 1
 ```
 
 - **context**: allows to setup a string which serves as context

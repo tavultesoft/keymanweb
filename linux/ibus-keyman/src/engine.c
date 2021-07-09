@@ -598,28 +598,22 @@ ibus_keyman_engine_process_key_event (IBusEngine     *engine,
 
     gboolean isKeyDown = TRUE;
 
-    if (state & IBUS_RELEASE_MASK)
-    {
-        switch (keycode)
-        {
-        case KEYMAN_LCTRL:
-            keyman->lctrl_pressed = FALSE;
-            return FALSE;
-        case KEYMAN_RCTRL:
-            keyman->rctrl_pressed = FALSE;
-            return FALSE;
-        case KEYMAN_LALT:
-            keyman->lalt_pressed = FALSE;
-            return FALSE;
-        case KEYMAN_RALT:
-            keyman->ralt_pressed = FALSE;
-            return FALSE;
-        case KEYMAN_CAPS:
-            isKeyDown = FALSE;
-            break;
-        default:
-            return FALSE;
-        }
+    if (state & IBUS_RELEASE_MASK) {
+      isKeyDown = FALSE;
+      switch (keycode) {
+      case KEYMAN_LCTRL:
+        keyman->lctrl_pressed = FALSE;
+        break;
+      case KEYMAN_RCTRL:
+        keyman->rctrl_pressed = FALSE;
+        break;
+      case KEYMAN_LALT:
+        keyman->lalt_pressed = FALSE;
+        break;
+      case KEYMAN_RALT:
+        keyman->ralt_pressed = FALSE;
+        break;
+      }
     }
 
     if (keycode < 0 || keycode > 255)
@@ -880,7 +874,7 @@ ibus_keyman_engine_process_key_event (IBusEngine     *engine,
     g_message("after processing all actions");
     g_free(get_current_context_text(context));
     return TRUE;
- }
+}
 
 static void
 ibus_keyman_engine_set_surrounding_text (IBusEngine *engine,

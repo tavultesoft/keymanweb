@@ -8,11 +8,14 @@
 using namespace km::kbp;
 using namespace kmx;
 
-KMX_BOOL KMX_ProcessEvent::IsCapsLockOn(KMX_DWORD modifiers) {
-  return modifiers & CAPITALFLAG;
-}
-
 void KMX_ProcessEvent::SetCapsLock(KMX_DWORD &modifiers, KMX_BOOL capsLockOn) {
+  KMX_BOOL capsLockCurrentlyOn = IsCapsLockOn(modifiers);
+  if (capsLockCurrentlyOn == capsLockOn) {
+    return;
+  }
+
+  DebugLog("Caps lock is %s, switching %s", capsLockCurrentlyOn ? "on" : "off", capsLockOn ? "on" : "off");
+
   m_actions.QueueAction(QIT_CAPSLOCK, capsLockOn);
   if (capsLockOn) {
     modifiers |= CAPITALFLAG;
@@ -21,69 +24,52 @@ void KMX_ProcessEvent::SetCapsLock(KMX_DWORD &modifiers, KMX_BOOL capsLockOn) {
   }
 }
 
-/*
- * PRIVATE void ResetCapsLock(KMX_DWORD &modifiers);
+/**
+ * Deal with CapsAlwaysOff store option and turns caps lock off if necessary.
+ * Called by ProcessEvent.
+ * May update `modifiers` to add or remove `CAPITALFLAG` according to keyboard
+ * requirements. May queue actions to set caps lock state.
  *
- * Parameters: modifiers    The modifier keys
- *
- *   Called by:  ProcessEvent
- *
- * Turn off caps lock if it is on and CapsAlwaysOff is set
+ * @param[in,out]  modifiers    The modifier key bitmap
  */
 void KMX_ProcessEvent::ResetCapsLock(KMX_DWORD &modifiers) {
   DebugLog("ResetCapsLock: enter");
 
   if (m_keyboard.Keyboard->dwFlags & KF_CAPSALWAYSOFF) {
     DebugLog("ResetCapsLock: caps lock should be always off");
-    if (IsCapsLockOn(modifiers)) {
-      DebugLog("ResetCapsLock: caps lock is on, switching off caps lock");
-      SetCapsLock(modifiers, false);
-    }
+    SetCapsLock(modifiers, FALSE);
   }
   DebugLog("ResetCapsLock: exit");
 }
 
-/*
- * PRIVATE void KeyCapsLockPress(KMX_DWORD modifiers, KMX_BOOL isKeyDown);
+/**
+ * Deal with CapsLock store options on CapsLock key press. Called by ProcessEvent.
+ * May update `modifiers` to add or remove `CAPITALFLAG` according to keyboard
+ * requirements. May queue actions to set caps lock state.
  *
- * Parameters: modifiers    The modifier keys
- *             isKeyDown    TRUE if this is called on KeyDown event, FALSE if
- *                          called on KeyUp event
- *
- *   Called by:  ProcessEvent
- *
- * Deal with CapsLock store options on CapsLock key press
+ * @param[in,out]  modifiers    The modifier key bitmap
+ * @param          isKeyDown    TRUE if this is called on KeyDown event, FALSE if
+ *                              called on KeyUp event
  */
-void KMX_ProcessEvent::KeyCapsLockPress(KMX_DWORD &modifiers,
-                                        KMX_BOOL isKeyDown) {
-  if (m_keyboard.Keyboard->dwFlags & KF_CAPSONONLY) {
-    if (!isKeyDown && !IsCapsLockOn(modifiers)) {
-      SetCapsLock(modifiers, true);
-    }
-  } else if (m_keyboard.Keyboard->dwFlags & KF_CAPSALWAYSOFF) {
-    if (isKeyDown && IsCapsLockOn(modifiers)) {
-      SetCapsLock(modifiers, false);
-    }
+void KMX_ProcessEvent::KeyCapsLockPress(KMX_DWORD &modifiers, KMX_BOOL isKeyDown) {
+  if (m_keyboard.Keyboard->dwFlags & KF_CAPSONONLY && !isKeyDown) {
+    SetCapsLock(modifiers, TRUE);
+  } else if (m_keyboard.Keyboard->dwFlags & KF_CAPSALWAYSOFF && isKeyDown) {
+    SetCapsLock(modifiers, FALSE);
   }
 }
 
-/*
- * PRIVATE void KeyShiftPress(KMX_DWORD modifiers, KMX_BOOL isKeyDown);
+/**
+ * Deal with CapsLock store options on Shift key press. Called by ProcessEvent.
+ * May update `modifiers` to add or remove `CAPITALFLAG` according to keyboard
+ * requirements. May queue actions to set caps lock state.
  *
- * Parameters: modifiers    The modifier keys
- *             isKeyDown    TRUE if this is called on KeyDown event, FALSE if
- *                          called on KeyUp event
- *
- *   Called by:  ProcessEvent
- *
- * Deal with CapsLock store options on Shift key press
+ * @param[in,out]  modifiers    The modifier key bitmap
+ * @param          isKeyDown    TRUE if this is called on KeyDown event, FALSE if
+ *                              called on KeyUp event
  */
 void KMX_ProcessEvent::KeyShiftPress(KMX_DWORD &modifiers, KMX_BOOL isKeyDown) {
-  if (!IsCapsLockOn(modifiers)) return;
-
-  if (m_keyboard.Keyboard->dwFlags & KF_SHIFTFREESCAPS) {
-    if (isKeyDown) {
-      SetCapsLock(modifiers, false);
-    }
+  if (m_keyboard.Keyboard->dwFlags & KF_SHIFTFREESCAPS && isKeyDown) {
+    SetCapsLock(modifiers, FALSE);
   }
 }

@@ -478,6 +478,7 @@ typedef struct {
     uintptr_t           marker;          // MARKER type
     km_kbp_option_item const * option;   // OPT types
     km_kbp_usv          character;       // CHAR type
+    uint8_t             capsLock;        // CAPSLOCK type, 1 to turn on, 0 to turn off
   };
 } km_kbp_action_item;
 

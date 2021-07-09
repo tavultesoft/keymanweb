@@ -30,11 +30,8 @@ void actions::push_persist(option const &&opt) {
 void actions::push_capslock(bool turnOn)
 {
   assert(empty() || (!empty() && back().type != KM_KBP_IT_END));
-  option option = {KM_KBP_OPT_ENVIRONMENT, KM_KBP_KMX_ENV_CAPSLOCK, turnOn ? u"1" : u"0"};
-  _option_items_stack.emplace_back(option);
-
   km_kbp_action_item ai = {KM_KBP_IT_CAPSLOCK, {0,}, {0}};
-  ai.option = &_option_items_stack.back();
+  ai.capsLock           = turnOn;
   emplace_back(std::move(ai));
 }
 

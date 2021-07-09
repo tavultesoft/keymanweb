@@ -95,6 +95,10 @@ public:
   LPINTKEYBOARDINFO GetKeyboard();
 };
 
+inline KMX_BOOL KMX_ProcessEvent::IsCapsLockOn(KMX_DWORD modifiers) {
+  return modifiers & CAPITALFLAG ? TRUE : FALSE;
+}
+
 /* Global Constants */
 
 struct char_to_vkey {
