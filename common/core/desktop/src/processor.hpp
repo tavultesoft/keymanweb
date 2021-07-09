@@ -38,7 +38,8 @@ namespace kbp
 
     virtual km_kbp_status process_event(km_kbp_state *,
                                         km_kbp_virtual_key,
-                                        uint16_t modifier_state) = 0;
+                                        uint16_t modifier_state,
+                                        uint8_t is_key_down) = 0;
 
     virtual km_kbp_attr const & attributes() const = 0;
     virtual km_kbp_status       validate() const = 0;
