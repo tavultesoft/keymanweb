@@ -119,7 +119,7 @@ namespace com.keyman.text {
 
 (function() {
   // Declare KeymanWeb and related objects
-  var keymanweb=window['keyman'], osk: com.keyman.osk.OSKManager = keymanweb['osk'],util=keymanweb['util'],device=util.device;
+  var keymanweb=window['keyman'],util=keymanweb['util'],device=util.device;
   var dom = com.keyman.dom;
 
   // Allow definition of application name
@@ -250,10 +250,10 @@ namespace com.keyman.text {
    * correctOSKTextSize handles rotation event -- currently rebuilds keyboard and adjusts font sizes
    */
   keymanweb['correctOSKTextSize']=function() {
-    let osk = keymanweb.osk;
+    let osk: com.keyman.osk.OSKManager = keymanweb.osk;
     if(osk && osk.vkbd && osk.vkbd.adjustHeights(osk.getKeyboardHeight())) {
       var b: HTMLElement = osk._Box, bs=b.style;
-      bs.height=bs.maxHeight=osk.vkbd.computedAdjustedOskHeight(this.getHeight())+'px';
+      bs.height=bs.maxHeight=osk.vkbd.computedAdjustedOskHeight(osk.getHeight())+'px';
 
       osk._Load();
     }
@@ -277,6 +277,7 @@ namespace com.keyman.text {
    *     
    **/
   keymanweb['popupVisible'] = function(isVisible) {
+    let osk = keymanweb.osk;
     let gesture = osk.vkbd.subkeyGesture as com.keyman.osk.embedded.SubkeyDelegator;
     let pendingLongpress = osk.vkbd.pendingSubkey;
 
@@ -313,8 +314,8 @@ namespace com.keyman.text {
    *  @return  {string}      comma-separated x,y,w,h of language menu key
    *  
    **/
-  keymanweb['touchMenuPos'] = function()
-  {
+  keymanweb['touchMenuPos'] = function() {
+    let osk = keymanweb.osk;
     if(osk.vkbd.lgKey == null) {
       return '';
     }
@@ -345,6 +346,7 @@ namespace com.keyman.text {
    *  @param  {string}  keyName   key identifier
    **/            
   keymanweb['executePopupKey'] = function(keyName: string) {
+      let osk = keymanweb.osk;
       var origArg = keyName;
       if(!keymanweb.core.activeKeyboard || !osk.vkbd) {
         return false;
@@ -394,7 +396,7 @@ namespace com.keyman.text {
     }
 
     // Clear any pending (non-popup) key
-    osk.vkbd.keyPending = null;
+    keyman.osk.vkbd.keyPending = null;
     
     // Note:  this assumes Lelem is properly attached and has an element interface.
     // Currently true in the Android and iOS apps.
