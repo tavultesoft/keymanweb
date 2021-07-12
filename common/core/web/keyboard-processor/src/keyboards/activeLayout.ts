@@ -234,7 +234,7 @@ namespace com.keyman.keyboards {
     }
   }
 
-  class ActiveRow implements LayoutRow {
+  export class ActiveRow implements LayoutRow {
     // Identify key labels (e.g. *Shift*) that require the special OSK font
     static readonly SPECIAL_LABEL=/\*\w+\*/;
 
@@ -355,6 +355,12 @@ namespace com.keyman.keyboards {
   export class ActiveLayer implements LayoutLayer {
     row: ActiveRow[];
     id: string;
+
+    // These already exist on the objects, pre-polyfill...
+    // but they still need to be proactively declared on this type.
+    capsKey?: ActiveKey;
+    numKey?: ActiveKey;
+    scrollKey?: ActiveKey;
 
     totalWidth: number;
 
